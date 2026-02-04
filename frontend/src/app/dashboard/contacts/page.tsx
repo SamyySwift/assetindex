@@ -21,10 +21,16 @@ interface Assignment {
   assetId: string
 }
 
+interface Asset {
+  _id: string
+  name: string
+}
+
 export default function ContactsPage() {
   const router = useRouter()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
@@ -60,9 +66,24 @@ export default function ContactsPage() {
     }
   }
 
+  async function fetchAssets() {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assets`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const json = await res.json()
+      setAssets(json)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useEffect(() => {
     fetchContacts()
     fetchAssignments()
+    fetchAssets()
   }, [])
 
   function getAssignmentCount(contactId: string) {
@@ -74,6 +95,15 @@ export default function ContactsPage() {
     setIsAssignmentModalOpen(true)
   }
 
+  function handleAddContact() {
+    if (assets.length === 0) {
+      alert('Please create at least one asset before adding contacts.')
+      router.push('/dashboard/assets')
+      return
+    }
+    setIsModalOpen(true)
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -82,7 +112,7 @@ export default function ContactsPage() {
           <p className="text-muted-foreground">People designated to receive your assets.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleAddContact}
           className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -102,7 +132,7 @@ export default function ContactsPage() {
             <h3 className="font-serif text-xl mb-2">No contacts yet</h3>
             <p className="text-muted-foreground max-w-sm mx-auto mb-6">Add friends, family, or legal representatives who should receive your assets.</p>
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={handleAddContact}
               className="text-sm font-medium text-white hover:underline underline-offset-4"
             >
               Add a contact

@@ -14,19 +14,29 @@ export const assignAssets = async (req: AuthRequest, res: Response) => {
     const { contactId, assignments } = req.body;
     // assignments: [{ assetId, permissionLevel }]
 
+    console.log('=== ASSIGN ASSETS REQUEST ===');
+    console.log('User ID:', req.user?._id);
+    console.log('Contact ID:', contactId);
+    console.log('Assignments:', JSON.stringify(assignments, null, 2));
+
     try {
         // Verify contact belongs to user
         const contact = await Contact.findOne({ _id: contactId, userId: req.user._id });
         if (!contact) {
+            console.log('Contact not found');
             res.status(404).json({ message: 'Contact not found' });
             return;
         }
+        console.log('Contact found:', contact.name);
 
         // Verify all assets belong to user
         const assetIds = assignments.map((a: any) => a.assetId);
         const assets = await Asset.find({ _id: { $in: assetIds }, userId: req.user._id });
         
+        console.log('Assets found:', assets.length, 'Expected:', assetIds.length);
+        
         if (assets.length !== assetIds.length) {
+            console.log('Asset count mismatch');
             res.status(404).json({ message: 'One or more assets not found' });
             return;
         }
@@ -34,6 +44,7 @@ export const assignAssets = async (req: AuthRequest, res: Response) => {
         // Create assignments (will update if already exists due to unique index)
         const createdAssignments = [];
         for (const assignment of assignments) {
+            console.log('Creating assignment for asset:', assignment.assetId);
             const newAssignment = await AssetAssignment.findOneAndUpdate(
                 { contactId, assetId: assignment.assetId },
                 {
@@ -44,11 +55,14 @@ export const assignAssets = async (req: AuthRequest, res: Response) => {
                 },
                 { upsert: true, new: true }
             );
+            console.log('Assignment created/updated:', newAssignment._id);
             createdAssignments.push(newAssignment);
         }
 
+        console.log('Total assignments created:', createdAssignments.length);
         res.status(201).json(createdAssignments);
     } catch (error: any) {
+        console.error('Assignment error:', error);
         res.status(400).json({ message: error.message });
     }
 };
