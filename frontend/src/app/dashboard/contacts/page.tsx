@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Users, Loader2, ShieldCheck, Clock } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Plus, Users, Loader2, ShieldCheck, FolderOpen } from 'lucide-react'
 import ContactModal from '@/components/ContactModal'
+import AssetAssignmentModal from '@/components/AssetAssignmentModal'
 import { cn } from '@/lib/utils'
 
 interface Contact {
@@ -10,14 +12,23 @@ interface Contact {
   name: string
   email: string
   relationship: string
-  status: string
   createdAt: string
 }
 
+interface Assignment {
+  _id: string
+  contactId: string
+  assetId: string
+}
+
 export default function ContactsPage() {
+  const router = useRouter()
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
 
   async function fetchContacts() {
     try {
@@ -35,9 +46,33 @@ export default function ContactsPage() {
     }
   }
 
+  async function fetchAssignments() {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assignments`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const json = await res.json()
+      setAssignments(json)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useEffect(() => {
     fetchContacts()
+    fetchAssignments()
   }, [])
+
+  function getAssignmentCount(contactId: string) {
+    return assignments.filter(a => a.contactId === contactId).length
+  }
+
+  function handleAssignAssets(contact: Contact) {
+    setSelectedContact(contact)
+    setIsAssignmentModalOpen(true)
+  }
 
   return (
     <div>
@@ -65,7 +100,7 @@ export default function ContactsPage() {
                 <Users className="w-6 h-6 text-muted-foreground" />
             </div>
             <h3 className="font-serif text-xl mb-2">No contacts yet</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto mb-6">Add friends, family, or legal representatives who should be notified securely.</p>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-6">Add friends, family, or legal representatives who should receive your assets.</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="text-sm font-medium text-white hover:underline underline-offset-4"
@@ -75,41 +110,72 @@ export default function ContactsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {contacts.map((contact) => (
-                <div key={contact._id} className="p-5 bg-card border border-white/5 rounded-xl hover:border-white/10 transition-colors">
+            {contacts.map((contact) => {
+              const assignmentCount = getAssignmentCount(contact._id)
+              
+              return (
+                <div 
+                  key={contact._id} 
+                  className="p-5 bg-card border border-white/5 rounded-xl hover:border-white/10 transition-all cursor-pointer group"
+                  onClick={() => router.push(`/dashboard/contacts/${contact._id}`)}
+                >
                     <div className="flex items-start justify-between mb-4">
                         <div className="p-3 bg-white/5 rounded-lg text-emerald-400">
                              <Users className="w-5 h-5" />
                         </div>
-                        <span className={cn(
-                            "text-xs px-2 py-1 rounded-full border",
-                            contact.status === 'Active' ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" :
-                            contact.status === 'Pending' ? "border-amber-500/20 bg-amber-500/10 text-amber-400" :
-                            "border-red-500/20 bg-red-500/10 text-red-400"
-                        )}>
-                            {contact.status}
+                        <span className="text-xs px-2 py-1 rounded-full border border-white/10 bg-white/5 text-white/70">
+                            {contact.relationship}
                         </span>
                     </div>
                     <h3 className="font-medium text-lg font-serif mb-1">{contact.name}</h3>
                     <p className="text-sm text-muted-foreground mb-4">{contact.email}</p>
                     
-                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-white/5 mb-3">
                         <span className="flex items-center gap-1">
-                            <ShieldCheck className="w-3 h-3" />
-                            {contact.relationship}
+                            <FolderOpen className="w-3 h-3" />
+                            {assignmentCount} asset{assignmentCount !== 1 ? 's' : ''}
                         </span>
                         <span>Added {new Date(contact.createdAt).toLocaleDateString()}</span>
                     </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleAssignAssets(contact)
+                      }}
+                      className="w-full py-2 text-sm font-medium bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+                    >
+                      Assign Assets
+                    </button>
                 </div>
-            ))}
+              )
+            })}
         </div>
       )}
 
       <ContactModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSuccess={fetchContacts} 
+        onSuccess={() => {
+          fetchContacts()
+          fetchAssignments()
+        }} 
       />
+
+      {selectedContact && (
+        <AssetAssignmentModal
+          isOpen={isAssignmentModalOpen}
+          onClose={() => {
+            setIsAssignmentModalOpen(false)
+            setSelectedContact(null)
+          }}
+          onSuccess={() => {
+            fetchAssignments()
+          }}
+          contactId={selectedContact._id}
+          contactName={selectedContact.name}
+        />
+      )}
     </div>
   )
 }

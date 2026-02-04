@@ -129,7 +129,7 @@ export default function HowItWorks() {
                 <step.icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
               </div>
 
-              <h3 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-none tracking-tighter uppercase mb-6 text-center">
+              <h3 className="font-serif font-black text-5xl md:text-6xl lg:text-7xl leading-none tracking-tighter uppercase mb-6 text-center">
                 {step.title.split("").map((c, ci) => (
                   <span key={ci} className="title-char inline-block">{c === " " ? "\u00A0" : c}</span>
                 ))}

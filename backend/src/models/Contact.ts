@@ -23,11 +23,6 @@ const ContactSchema = new mongoose.Schema({
     type: String,
     enum: ['Family', 'Friend', 'Legal', 'Other'],
     default: 'Family',
-  },
-  status: {
-    type: String,
-    enum: ['Pending', 'Active', 'Declined'],
-    default: 'Pending',
   }
 }, {
   timestamps: true,

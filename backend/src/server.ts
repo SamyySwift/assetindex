@@ -27,12 +27,14 @@ import assetRoutes from './routes/assetRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import cronRoutes from './routes/cronRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/cron', cronRoutes);
+app.use('/api/assignments', assignmentRoutes);
 
 app.get('/', (req, res) => {
   res.send('Asset Index API is running...');

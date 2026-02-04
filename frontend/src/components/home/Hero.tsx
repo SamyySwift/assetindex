@@ -78,7 +78,7 @@ export default function Hero() {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale-[0.2]"
+          className="absolute inset-0 w-full h-full object-cover opacity-50 grayscale-[0.2]"
         >
           <source src="/hero_video.mp4" type="video/mp4" />
         </video>
@@ -123,7 +123,7 @@ export default function Hero() {
 
       <div className="absolute right-10 bottom-24 z-30 hidden xl:flex flex-col gap-4 items-end ui-fade text-right">
         <span className="font-sans text-[9px] uppercase tracking-[0.4em] text-white/40 max-w-[150px]">
-          Encrypted Documentation System v4.0.1
+          Encrypted Documentation
         </span>
         <div className="w-[1px] h-32 bg-white/20" />
       </div>

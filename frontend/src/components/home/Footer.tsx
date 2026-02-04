@@ -60,7 +60,7 @@ export default function Footer() {
 
         {/* Monumental Branding */}
         <div className="border-t border-[#1A110D]/10 pt-12 mt-12 overflow-hidden">
-          <h2 className="font-serif text-[18vw] leading-[0.75] tracking-[-0.05em] uppercase text-[#1A110D] select-none pointer-events-none whitespace-nowrap">
+          <h2 className="font-serif text-[13vw] leading-[0.75] tracking-[-0.05em] uppercase text-[#1A110D] select-none pointer-events-none whitespace-nowrap">
             Asset Index
           </h2>
         </div>

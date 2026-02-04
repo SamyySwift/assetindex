@@ -107,7 +107,7 @@ export default function ContactModal({ isOpen, onClose, onSuccess }: ContactModa
                     className="px-4 py-2 text-sm font-medium bg-white text-black rounded-md hover:bg-white/90 transition-colors flex items-center gap-2"
                 >
                     {loading && <Loader2 className="w-3 h-3 animate-spin"/>}
-                    Send Invitation
+                    Create Contact
                 </button>
             </div>
         </form>

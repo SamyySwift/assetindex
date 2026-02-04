@@ -94,7 +94,7 @@ export default function Problem() {
     },
     {
       text: "It doesn't have to be this way.",
-      align: "items-center text-center",
+      align: "items-center text-center mt-12",
       accent: "Asset Index Protocols"
     }
   ]
@@ -115,9 +115,9 @@ export default function Problem() {
             className={`absolute inset-0 flex flex-col justify-center px-6 md:px-24 mb-12 ${item.align} opacity-0 pointer-events-none`}
             style={{ opacity: 1 }} // Controlled by GSAP
           >
-            <span className="font-sans text-[10px] uppercase tracking-[0.5em] text-white/40 mb-4 block">
+            {/* <span className="font-sans text-[10px] uppercase tracking-[0.5em] text-white/40 mb-4 block">
               {item.accent}
-            </span>
+            </span> */}
             <h2 className="font-serif text-5xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tighter uppercase max-w-6xl">
               {item.text.split(" ").map((word, wi) => (
                 <span key={wi} className="inline-block whitespace-nowrap mr-[0.2em]">

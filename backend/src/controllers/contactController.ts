@@ -31,8 +31,7 @@ export const createContact = async (req: AuthRequest, res: Response) => {
             name,
             email,
             relationship,
-            phone,
-            status: 'Pending' // Default status
+            phone
         });
 
         const createdContact = await contact.save();
