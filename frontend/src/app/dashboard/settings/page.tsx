@@ -12,7 +12,7 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/settings`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/settings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -37,7 +37,7 @@ export default function SettingsPage() {
     const data = Object.fromEntries(formData.entries())
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/settings`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/settings`, {
         method: 'PUT',
         headers: { 
             'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export default function SettingsPage() {
   async function handleCheckIn() {
     setCheckingIn(true)
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/checkin`, { 
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/checkin`, { 
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -119,6 +119,7 @@ export default function SettingsPage() {
                     defaultValue={user?.checkInFrequency}
                     className="w-full bg-background border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-white/20"
                 >
+                    <option value="5 Minutes">5 Minutes (Testing)</option>
                     <option value="Weekly">Weekly</option>
                     <option value="Monthly">Monthly</option>
                     <option value="Yearly">Yearly</option>

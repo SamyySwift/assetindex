@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
   },
   checkInFrequency: {
     type: String,
-    enum: ['Weekly', 'Monthly', 'Yearly'],
+    enum: ['5 Minutes', 'Weekly', 'Monthly', 'Yearly'],
     default: 'Monthly',
   },
   gracePeriod: {

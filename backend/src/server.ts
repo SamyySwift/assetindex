@@ -8,6 +8,22 @@ dotenv.config();
 
 connectDB();
 
+import cron from 'node-cron';
+import { checkInactivity } from './controllers/cronController.js';
+
+// Setup automated inactivity monitor (running every minute for rapid responsiveness)
+cron.schedule('* * * * *', async () => {
+    console.log('Running automated inactivity monitor...');
+    try {
+        const { processed, notifications } = await checkInactivity();
+        if (processed > 0) {
+            console.log(`Automated monitor: Processed ${processed} users, sent ${notifications} notifications.`);
+        }
+    } catch (error) {
+        console.error('Automated inactivity monitor failed:', error);
+    }
+});
+
 const app = express();
 
 // 1. CORS must be at the very top to handle preflight for all routes
