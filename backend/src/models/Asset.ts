@@ -13,16 +13,27 @@ const AssetSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Digital', 'Financial', 'Physical', 'Document', 'Other'],
+    enum: [
+      'Digital', 'Financial', 'Physical', 'Document', 'Other',
+      'Crypto Ledger', 'Seed Phrases', 'Stock Portfolio', 'Real Estate Deeds',
+      'Social Media Account', 'Insurance Policy', 'Credentials', 'Secret Note', 'Hardware Access'
+    ],
     default: 'Other',
+  },
+  value: {
+    type: String, // Monetary or estimated value
+    default: '0',
   },
   description: {
     type: String,
     maxlength: [500, 'Description cannot be more than 500 characters'],
   },
   accessInstructions: {
-    type: String, // Encrypted ideally, but plain for Demo MVP unless requested specific crypto lib
+    type: String,
     required: [true, 'Please provide access instructions'],
+  },
+  accessKey: {
+    type: String, // Encrypted key/password stored for disclosure
   },
   sensitivity: {
     type: String,

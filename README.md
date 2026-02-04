@@ -76,6 +76,75 @@ assetindex/
 └── README.md
 ```
 
+## 🚀 Getting Started
+
+Follow these steps to get the project up and running on your local machine.
+
+### Prerequisites
+
+- **Node.js**: Version 18.x or higher
+- **npm**: Version 9.x or higher
+- **MongoDB**: A running instance (local or Atlas)
+
+### 🛠️ Backend Setup
+
+1. **Navigate to the backend directory**:
+   ```bash
+   cd backend
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   Create a `.env` file in the `backend/` directory and add the following:
+   ```env
+   PORT=8000
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret
+   FRONTEND_URL=http://localhost:3000
+   
+   # SMTP Configuration (Optional for emails)
+   SMTP_HOST=smtp.your-email-provider.com
+   SMTP_PORT=465
+   SMTP_SECURE=true
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_app_password
+   ```
+
+4. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+   The backend will be available at `http://localhost:8000`.
+
+### 🎨 Frontend Setup
+
+1. **Navigate to the frontend directory**:
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   Create a `.env.local` file in the `frontend/` directory and add:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
+
+4. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+   The application will be available at `http://localhost:3000`.
+
+
 
 
 

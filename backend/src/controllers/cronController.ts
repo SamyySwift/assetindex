@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Contact from '../models/Contact.js';
 import AssetAssignment from '../models/AssetAssignment.js';
 import dotenv from 'dotenv';
+import { getWarningEmail, getDisclosureEmail } from '../utils/emailTemplates.js';
 
 dotenv.config();
 
@@ -76,7 +77,9 @@ export const checkInactivity = async () => {
 
                  if (diffUnits <= graceLimit) {
                      if (!user.warningSent) {
-                         const sent = await sendEmail(user.email, "Action Required: Check in to Asset Index", "Please <a href='http://localhost:3000/dashboard/settings'>check in here</a> to confirm you are active.")
+                         const checkInUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/settings`;
+                         const emailHtml = getWarningEmail(user.name, checkInUrl);
+                         const sent = await sendEmail(user.email, "Action Required: Security Verification", emailHtml)
                          if (sent) {
                              await User.findByIdAndUpdate(user._id, { warningSent: true })
                          }
@@ -93,22 +96,15 @@ export const checkInactivity = async () => {
                                  .populate('assetId');
 
                              if (assignments.length > 0) {
-                                 const assetListText = assignments.map((a: any) => `<li><strong>${a.assetId.name}</strong> (${a.permissionLevel}): ${a.assetId.accessInstructions || 'No specific instructions provided.'}</li>`).join('');
+                                 const assetsForTemplate = assignments.map((a: any) => ({
+                                     name: a.assetId.name,
+                                     instructions: a.assetId.accessInstructions || 'No specific instructions provided.',
+                                     level: a.permissionLevel
+                                 }));
                                  
-                                 const emailBody = `
-                                     <div style="font-family: sans-serif; max-width: 600px; margin: auto;">
-                                         <h1 style="color: #10b981;">Important Security Alert - Asset Index</h1>
-                                         <p>We are reaching out to you because <strong>${user.name}</strong> has been inactive for an extended period.</p>
-                                         <p>You have been designated as a trusted contact for the following assets:</p>
-                                         <ul style="background: #f3f4f6; padding: 20px; border-radius: 8px; list-style: none;">
-                                             ${assetListText}
-                                         </ul>
-                                         <p style="margin-top: 20px;">Please keep this information secure.</p>
-                                         <p style="color: #6b7280; font-size: 12px; margin-top: 40px;">This is an automated message from Asset Index.</p>
-                                     </div>
-                                 `;
+                                 const emailBody = getDisclosureEmail(user.name, assetsForTemplate);
 
-                                 await sendEmail(contact.email, `Asset Disclosure related to ${user.name}`, emailBody)
+                                 await sendEmail(contact.email, `Security Alert: Asset Disclosure related to ${user.name}`, emailBody)
                                  notifications++
                              }
                          }
