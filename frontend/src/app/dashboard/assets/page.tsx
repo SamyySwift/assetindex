@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import gsap from 'gsap'
 import { Plus, FolderClosed, Trash2, Eye, Loader2, X } from 'lucide-react'
 import AssetModal from '@/components/AssetModal'
+import MagnetButton from '@/components/MagnetButton'
 import { cn } from '@/lib/utils'
 
 interface Asset {
@@ -21,6 +23,7 @@ export default function AssetsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const container = useRef<HTMLDivElement>(null)
 
   async function fetchAssets() {
     try {
@@ -31,6 +34,12 @@ export default function AssetsPage() {
       })
       const json = await res.json()
       setAssets(json)
+      
+      // Staggered entry for assets
+      gsap.fromTo(".asset-item", 
+        { y: 20, opacity: 0, scale: 0.95 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.1, ease: "power3.out", delay: 0.2 }
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -67,19 +76,24 @@ export default function AssetsPage() {
   }, [])
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="relative min-h-full">
+      <div className="flex items-center justify-between mb-16">
         <div>
-          <h1 className="text-3xl font-serif mb-2">My Assets</h1>
-          <p className="text-muted-foreground">Securely documented items.</p>
+          <h1 className="text-4xl md:text-5xl font-serif mb-4 tracking-tight">My Assets</h1>
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+            <p className="text-muted-foreground font-medium tracking-wide uppercase text-xs">Secure Repository</p>
+          </div>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add Asset
-        </button>
+        <MagnetButton>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-white/90 transition-all duration-300 flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95"
+          >
+            <Plus className="w-5 h-5" />
+            Add Asset
+          </button>
+        </MagnetButton>
       </div>
 
       {loading ? (
@@ -101,23 +115,29 @@ export default function AssetsPage() {
             </button>
         </div>
       ) : (
-        <div className="grid gap-4">
-            {assets.map((asset) => (
-                <div key={asset._id} className="group p-5 bg-card border border-white/5 rounded-xl flex items-center justify-between hover:border-white/10 transition-colors">
+        <div className="grid gap-6">
+            {assets.map((asset, i) => (
+                <div 
+                  key={asset._id} 
+                  className="asset-item group p-6 glass-card glass-card-hover rounded-2xl flex items-center justify-between border-white/5 overflow-hidden"
+                >
+                    {/* Glow background on hover */}
+                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-500 blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" />
+
                     <div 
-                      className="flex items-center gap-4 flex-1 cursor-pointer"
+                      className="flex items-center gap-6 flex-1 cursor-pointer relative z-10"
                       onClick={() => handleView(asset)}
                     >
-                        <div className="p-3 bg-white/5 rounded-lg text-muted-foreground group-hover:text-white transition-colors">
-                            <FolderClosed className="w-5 h-5" />
+                        <div className="p-4 bg-white/5 rounded-xl text-muted-foreground group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-all duration-500 group-hover:scale-110">
+                            <FolderClosed className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="font-medium text-foreground">{asset.name}</h3>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                <span className="bg-white/5 px-2 py-0.5 rounded text-white/70">{asset.type}</span>
-                                <span>•</span>
+                            <h3 className="text-lg font-medium text-foreground tracking-tight group-hover:translate-x-1 transition-transform duration-300">{asset.name}</h3>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+                                <span className="bg-white/5 px-3 py-1 rounded-full border border-white/5 text-white/60 font-medium">{asset.type}</span>
+                                <span className="w-1 h-1 rounded-full bg-white/20" />
                                 <span className={cn(
-                                    "px-2 py-0.5 rounded",
+                                    "px-3 py-1 rounded-full font-bold uppercase tracking-wider text-[10px]",
                                     asset.sensitivity === 'Critical' ? "bg-red-500/10 text-red-400" :
                                     asset.sensitivity === 'High' ? "bg-amber-500/10 text-amber-400" :
                                     "bg-emerald-500/10 text-emerald-400"
@@ -125,20 +145,20 @@ export default function AssetsPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 relative z-10">
                       <button 
                         onClick={() => handleView(asset)}
-                        className="p-2 text-muted-foreground hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                        className="p-3 text-muted-foreground hover:text-white hover:bg-white/5 rounded-xl transition-all duration-300"
                         title="View details"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-5 h-5" />
                       </button>
                       <button 
                         onClick={() => handleDelete(asset._id)}
-                        className="p-2 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                        className="p-3 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-300"
                         title="Delete asset"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                 </div>
@@ -175,51 +195,51 @@ export default function AssetsPage() {
             <div className="p-6 space-y-6">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Asset Name</label>
-                <p className="text-lg font-medium mt-1">{selectedAsset.name}</p>
+                <p className="text-lg font-medium mt-1">{selectedAsset?.name}</p>
               </div>
-
+ 
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Type</label>
-                  <p className="mt-1">{selectedAsset.type}</p>
+                  <p className="mt-1">{selectedAsset?.type}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Sensitivity</label>
                   <p className={cn(
                     "mt-1 inline-block px-2 py-0.5 rounded text-sm",
-                    selectedAsset.sensitivity === 'Critical' ? "bg-red-500/10 text-red-400" :
-                    selectedAsset.sensitivity === 'High' ? "bg-amber-500/10 text-amber-400" :
+                    selectedAsset?.sensitivity === 'Critical' ? "bg-red-500/10 text-red-400" :
+                    selectedAsset?.sensitivity === 'High' ? "bg-amber-500/10 text-amber-400" :
                     "bg-emerald-500/10 text-emerald-400"
-                  )}>{selectedAsset.sensitivity}</p>
+                  )}>{selectedAsset?.sensitivity}</p>
                 </div>
               </div>
-
-              {selectedAsset.description && (
+ 
+              {selectedAsset?.description && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Description</label>
-                  <p className="mt-1 text-sm">{selectedAsset.description}</p>
+                  <p className="mt-1 text-sm">{selectedAsset?.description}</p>
                 </div>
               )}
-
-              {selectedAsset.accessInstructions && (
+ 
+              {selectedAsset?.accessInstructions && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Access Instructions</label>
                   <div className="mt-1 p-4 bg-white/5 rounded-lg border border-white/10">
-                    <p className="text-sm whitespace-pre-wrap">{selectedAsset.accessInstructions}</p>
+                    <p className="text-sm whitespace-pre-wrap">{selectedAsset?.accessInstructions}</p>
                   </div>
                 </div>
               )}
-
+ 
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Created</label>
-                <p className="mt-1 text-sm">{new Date(selectedAsset.createdAt).toLocaleDateString('en-US', { 
+                <p className="mt-1 text-sm">{selectedAsset?.createdAt ? new Date(selectedAsset.createdAt).toLocaleDateString('en-US', { 
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
-                })}</p>
+                }) : ''}</p>
               </div>
             </div>
-
+ 
             <div className="px-6 py-4 border-t border-white/5 flex justify-end gap-3">
               <button 
                 onClick={() => setIsViewModalOpen(false)}
@@ -229,8 +249,10 @@ export default function AssetsPage() {
               </button>
               <button 
                 onClick={() => {
-                  setIsViewModalOpen(false)
-                  handleDelete(selectedAsset._id)
+                  if (selectedAsset) {
+                    setIsViewModalOpen(false)
+                    handleDelete(selectedAsset._id)
+                  }
                 }}
                 className="px-4 py-2 text-sm font-medium bg-red-500/10 text-red-400 rounded-md hover:bg-red-500/20 transition-colors"
               >

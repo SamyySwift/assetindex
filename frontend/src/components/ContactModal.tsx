@@ -2,7 +2,8 @@
 
 import { useRef, useEffect, useState } from 'react'
 import gsap from 'gsap'
-import { X, Loader2 } from 'lucide-react'
+import { X, Users, Loader2 } from 'lucide-react'
+import MagnetButton from './MagnetButton'
 
 interface ContactModalProps {
   isOpen: boolean
@@ -15,6 +16,11 @@ export default function ContactModal({ isOpen, onClose, onSuccess }: ContactModa
   const overlayRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    relationship: 'Family'
+  })
 
   useEffect(() => {
     if (isOpen) {
@@ -33,9 +39,6 @@ export default function ContactModal({ isOpen, onClose, onSuccess }: ContactModa
     setLoading(true)
     setError('')
 
-    const formData = new FormData(e.currentTarget)
-    const data = Object.fromEntries(formData.entries())
-
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/contacts`, {
         method: 'POST',
@@ -43,7 +46,7 @@ export default function ContactModal({ isOpen, onClose, onSuccess }: ContactModa
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       })
 
       const json = await res.json()
@@ -62,54 +65,83 @@ export default function ContactModal({ isOpen, onClose, onSuccess }: ContactModa
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
         ref={overlayRef} 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0" 
+        className="absolute inset-0 bg-black/60 backdrop-blur-md opacity-0" 
         onClick={onClose}
       />
+      
       <div 
         ref={modalRef}
-        className="relative w-full max-w-md bg-card border border-white/10 rounded-xl shadow-2xl overflow-hidden opacity-0"
+        className="relative w-full max-w-lg glass-card rounded-3xl border-white/10 shadow-2xl overflow-hidden opacity-0"
       >
-        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-            <h2 className="text-lg font-serif">Add Trusted Contact</h2>
-            <button onClick={onClose} className="text-muted-foreground hover:text-white transition-colors">
-                <X className="w-5 h-5" />
-            </button>
+        <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+          <h2 className="text-2xl font-serif tracking-tight">Add Contact</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-white transition-colors p-2">
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {error && <div className="text-sm text-red-500 bg-red-500/10 p-2 rounded">{error}</div>}
+        <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {error && <div className="text-sm text-red-500 bg-red-500/10 p-3 rounded-xl border border-red-500/20">{error}</div>}
 
-            <div className="grid gap-2">
-                <label className="text-sm font-medium">Full Name</label>
-                <input required name="name" className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-white/20" placeholder="e.g. John Doe" />
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Full Name</label>
+              <input
+                required
+                type="text"
+                placeholder="e.g. Alexander Pierce"
+                className="w-full bg-transparent border-0 border-b border-white/10 px-0 py-4 text-sm focus:outline-none focus:border-white transition-all duration-500 placeholder:text-white/10"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
             </div>
 
-            <div className="grid gap-2">
-                <label className="text-sm font-medium">Email Address</label>
-                <input required type="email" name="email" className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-white/20" placeholder="john@example.com" />
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Email Address</label>
+              <input
+                required
+                type="email"
+                placeholder="alexander@guardian.com"
+                className="w-full bg-transparent border-0 border-b border-white/10 px-0 py-4 text-sm focus:outline-none focus:border-white transition-all duration-500 placeholder:text-white/10"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
             </div>
 
-            <div className="grid gap-2">
-                <label className="text-sm font-medium">Relationship</label>
-                <select required name="relationship" className="w-full bg-background border border-white/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-white/20">
-                    <option value="Family">Family</option>
-                    <option value="Friend">Friend</option>
-                    <option value="Legal">Legal</option>
-                    <option value="Other">Other</option>
-                </select>
+            <div className="space-y-2 relative">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Relationship</label>
+              <select
+                className="w-full bg-transparent border-0 border-b border-white/10 px-0 py-4 text-sm focus:outline-none focus:border-white transition-all duration-500 appearance-none cursor-pointer"
+                value={formData.relationship}
+                onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+              >
+                <option value="Family">Family</option>
+                <option value="Friend">Friend</option>
+                <option value="Legal Representative">Legal Representative</option>
+                <option value="Business Partner">Business Partner</option>
+              </select>
             </div>
+          </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors">Cancel</button>
-                <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="px-4 py-2 text-sm font-medium bg-white text-black rounded-md hover:bg-white/90 transition-colors flex items-center gap-2"
+          <div className="flex justify-end gap-4 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 text-sm font-bold text-muted-foreground hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+            <MagnetButton strength={0.2}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-white/90 transition-all duration-300 flex items-center gap-2 shadow-xl active:scale-95 disabled:opacity-50"
                 >
-                    {loading && <Loader2 className="w-3 h-3 animate-spin"/>}
-                    Create Contact
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Users className="w-5 h-5" />}
+                  Register Contact
                 </button>
-            </div>
+            </MagnetButton>
+          </div>
         </form>
       </div>
     </div>
