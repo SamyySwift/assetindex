@@ -34,6 +34,10 @@ const UserSchema = new mongoose.Schema({
   assetsReleased: {
     type: Boolean,
     default: false,
+  },
+  warningSent: {
+    type: Boolean,
+    default: false,
   }
 }, {
   timestamps: true,

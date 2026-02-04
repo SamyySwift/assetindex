@@ -75,8 +75,13 @@ export const checkInactivity = async () => {
                  const graceLimit = user.checkInFrequency === '5 Minutes' ? user.gracePeriod : user.gracePeriod
 
                  if (diffUnits <= graceLimit) {
-                     await sendEmail(user.email, "Action Required: Check in to Asset Index", "Please <a href='http://localhost:3000/dashboard/settings'>check in here</a> to confirm you are active.")
-                     notifications++
+                     if (!user.warningSent) {
+                         const sent = await sendEmail(user.email, "Action Required: Check in to Asset Index", "Please <a href='http://localhost:3000/dashboard/settings'>check in here</a> to confirm you are active.")
+                         if (sent) {
+                             await User.findByIdAndUpdate(user._id, { warningSent: true })
+                         }
+                         notifications++
+                     }
                  } else {
                      if (!user.assetsReleased) {
                          await User.findByIdAndUpdate(user._id, { assetsReleased: true })

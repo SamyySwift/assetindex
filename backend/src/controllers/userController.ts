@@ -13,12 +13,17 @@ export const getUserProfile = async (req: AuthRequest, res: Response) => {
         const user = await User.findById(req.user._id);
         if (user) {
             res.json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                checkInFrequency: user.checkInFrequency,
-                gracePeriod: user.gracePeriod,
-                lastCheckIn: user.lastCheckIn,
+                success: true,
+                data: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    checkInFrequency: user.checkInFrequency,
+                    gracePeriod: user.gracePeriod,
+                    lastCheckIn: user.lastCheckIn,
+                    assetsReleased: user.assetsReleased,
+                    warningSent: user.warningSent,
+                }
             });
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -44,16 +49,26 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
             if (req.body.password) {
                 user.password = req.body.password;
             }
+            
+            // Reset flags when settings are updated or user shows activity
+            user.warningSent = false;
+            user.assetsReleased = false;
+            user.lastCheckIn = new Date();
 
             const updatedUser = await user.save();
 
             res.json({
-                _id: updatedUser._id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                checkInFrequency: updatedUser.checkInFrequency,
-                gracePeriod: updatedUser.gracePeriod,
-                lastCheckIn: updatedUser.lastCheckIn,
+                success: true,
+                data: {
+                    _id: updatedUser._id,
+                    name: updatedUser.name,
+                    email: updatedUser.email,
+                    checkInFrequency: updatedUser.checkInFrequency,
+                    gracePeriod: updatedUser.gracePeriod,
+                    lastCheckIn: updatedUser.lastCheckIn,
+                    assetsReleased: updatedUser.assetsReleased,
+                    warningSent: updatedUser.warningSent,
+                }
             });
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -71,8 +86,18 @@ export const checkIn = async (req: AuthRequest, res: Response) => {
         const user = await User.findById(req.user._id);
         if (user) {
             user.lastCheckIn = new Date();
+            user.warningSent = false;
+            user.assetsReleased = false;
             await user.save();
-            res.json({ message: 'Check-in successful', lastCheckIn: user.lastCheckIn });
+            res.json({ 
+                success: true, 
+                message: 'Check-in successful', 
+                data: {
+                    lastCheckIn: user.lastCheckIn,
+                    warningSent: user.warningSent,
+                    assetsReleased: user.assetsReleased
+                } 
+            });
         } else {
             res.status(404).json({ message: 'User not found' });
         }

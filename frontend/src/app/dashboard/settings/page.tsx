@@ -68,7 +68,12 @@ export default function SettingsPage() {
         })
         const json = await res.json()
         if (json.success) {
-            setUser((prev: any) => ({ ...prev, lastCheckIn: json.data.lastCheckIn }))
+            setUser((prev: any) => ({ 
+              ...prev, 
+              lastCheckIn: json.data.lastCheckIn,
+              warningSent: json.data.warningSent,
+              assetsReleased: json.data.assetsReleased
+            }))
         }
     } catch (err) {
         console.error(err)
@@ -77,6 +82,25 @@ export default function SettingsPage() {
     }
   }
 
+  // Calculate Status Metrics
+  const lastCheckInDate = user?.lastCheckIn ? new Date(user.lastCheckIn) : null
+  const frequency = user?.checkInFrequency
+  
+  const getNextCheckIn = (last: Date | null, freq: string) => {
+    if (!last) return null
+    const date = new Date(last)
+    if (freq === '5 Minutes') date.setMinutes(date.getMinutes() + 5)
+    else if (freq === 'Weekly') date.setDate(date.getDate() + 7)
+    else if (freq === 'Monthly') date.setMonth(date.getMonth() + 1)
+    else if (freq === 'Yearly') date.setFullYear(date.getFullYear() + 1)
+    return date
+  }
+
+  const nextCheckInDue = getNextCheckIn(lastCheckInDate, frequency)
+  const now = new Date()
+  const minutesSinceLastCheckIn = lastCheckInDate ? Math.floor((now.getTime() - lastCheckInDate.getTime()) / (1000 * 60)) : 0
+  const isOverdue = nextCheckInDue ? now > nextCheckInDue : false
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
 
   return (
@@ -84,26 +108,55 @@ export default function SettingsPage() {
       <h1 className="text-3xl font-serif mb-2">Settings</h1>
       <p className="text-muted-foreground mb-8">Configure automation and privacy logic.</p>
 
-      <div className="mb-8 p-6 bg-card border border-emerald-500/20 rounded-xl">
-        <div className="flex items-center justify-between mb-4">
+      {/* Inactivity Status Card */}
+      <div className="mb-8 overflow-hidden bg-card border border-white/5 rounded-xl">
+        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
             <div>
                 <h3 className="text-lg font-medium flex items-center gap-2">
                     <Activity className="w-5 h-5 text-emerald-400" />
-                    Status Check
+                    Inactivity Status
                 </h3>
-                <p className="text-sm text-muted-foreground">Confirm you are active to reset the timer.</p>
+                <p className="text-xs text-muted-foreground">Real-time monitoring of your check-in cycle.</p>
             </div>
             <button 
                 onClick={handleCheckIn}
                 disabled={checkingIn}
-                className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm"
             >
                 {checkingIn ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Check-in Now
             </button>
         </div>
-        <div className="text-sm bg-background/50 p-3 rounded border border-white/5">
-            Last check-in: <span className="text-white font-mono">{new Date(user?.lastCheckIn).toLocaleString()}</span>
+        
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+                <StatusItem label="Check-in Frequency" value={user?.checkInFrequency} />
+                <StatusItem label="Grace Period" value={`${user?.gracePeriod} Days`} />
+                <StatusItem label="Last Check-in" value={lastCheckInDate?.toLocaleString()} />
+                <StatusItem label="Minutes Since Last" value={minutesSinceLastCheckIn.toString()} />
+            </div>
+            <div className="space-y-4">
+                <StatusItem 
+                    label="Assets Released" 
+                    value={user?.assetsReleased ? "YES" : "NO"} 
+                    valueClassName={user?.assetsReleased ? "text-red-400 font-bold" : "text-emerald-400"}
+                />
+                <StatusItem label="Next Check-in Due" value={nextCheckInDue?.toLocaleString()} />
+                <StatusItem 
+                    label="Is Overdue" 
+                    value={isOverdue ? "YES" : "NO"} 
+                    valueClassName={isOverdue ? "text-red-400 font-bold" : "text-emerald-400"}
+                />
+                <div className="pt-2">
+                    <div className={cn(
+                        "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium",
+                        isOverdue ? "bg-red-400/10 text-red-400 border border-red-400/20" : "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"
+                    )}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", isOverdue ? "bg-red-400 animate-pulse" : "bg-emerald-400")} />
+                        {isOverdue ? "Warning: Assets will be released soon" : "System Standing By"}
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
 
@@ -153,4 +206,13 @@ export default function SettingsPage() {
       </form>
     </div>
   )
+}
+
+function StatusItem({ label, value, valueClassName = "text-white" }: { label: string, value: string | undefined, valueClassName?: string }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</span>
+            <span className={cn("text-xs font-mono truncate", valueClassName)}>{value || 'N/A'}</span>
+        </div>
+    )
 }
